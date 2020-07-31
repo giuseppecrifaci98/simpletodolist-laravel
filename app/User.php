@@ -5,16 +5,11 @@ namespace App;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NewUserWelcomeEmail;
 class User extends Authenticatable
 {
     use Notifiable;
-
-    const ADMIN_TYPE = 'admin';
-    const DEFAULT_TYPE= 'default';
-    public function isAdmin(){
-        return $this->type===self::ADMIN_TYPE;
-    }
 
     /**
      * The attributes that are mass assignable.
@@ -42,6 +37,14 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    protected static function boot(){
+        parent::boot();
+
+        static::created(function($user){
+            Mail::to($user->email)->send(new NewUserWelcomeEmail());
+        });
+    }
 
     // relationship with task table
     public function task(){
